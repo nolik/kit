@@ -1,0 +1,1 @@
+Cli simple wrapper written on Rust for common kafka tools with commands simplification.
