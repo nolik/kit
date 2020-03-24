@@ -4,7 +4,7 @@ use clap::{Arg, App, SubCommand};
 use std::env::args;
 
 fn main() {
-    let matches = App::new("kafka-cli-helper")
+    let arg_matches = App::new("kafka-cli-helper")
         .version("1.0")
         .about("Kafka cli tools helper")
         .arg(Arg::with_name("config")
@@ -25,9 +25,5 @@ fn main() {
         .get_matches();
 
 //    CLI logic
-    match args {
-        _ => {
-            println!("here should be implemented li logic")
-        }
-    }
+    println!("argument matches: {:?}", arg_matches);
 }
