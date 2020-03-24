@@ -1,19 +1,33 @@
-use crate::cli_args::{CliArgs, Action};
+extern crate clap;
 
-mod cli_args;
+use clap::{Arg, App, SubCommand};
+use std::env::args;
 
 fn main() {
-    let cli_args: CliArgs = CliArgs::parse();
+    let matches = App::new("kafka-cli-helper")
+        .version("1.0")
+        .about("Kafka cli tools helper")
+        .arg(Arg::with_name("config")
+            .short("c")
+            .long("config")
+            .value_name("FILE")
+            .help("Sets a custom config file")
+            .takes_value(true))
+        .arg(Arg::with_name("INPUT")
+            .help("Sets the input file to use")
+            .required(true)
+            .index(1))
+        .subcommand(SubCommand::with_name("operation")
+            .about("operation testing features")
+            .arg(Arg::with_name("debug")
+                .short("c")
+                .help("print debug information verbosely")))
+        .get_matches();
 
-    // Gets a value for config if supplied by user, or defaults to "default.conf"
-    println!("Value for config: {}", cli_args.config);
-    println!("Using action: {}", cli_args.action);
-
-    // You can handle information about subcommands by requesting their matches by name
-    // (as below), requesting just the name used, or both at the same time
-    match cli_args.action {
-        Action::Listen { target: String::from("topic_name") } => {
-            println!("Listen topic")
+//    CLI logic
+    match args {
+        _ => {
+            println!("here should be implemented li logic")
         }
     }
 }
