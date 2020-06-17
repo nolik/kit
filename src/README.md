@@ -1,1 +1,1 @@
-Cli simple wrapper written on Rust for common kafka tools with commands simplification.
+kcli is a simple Kafka cli helper not require jvm.

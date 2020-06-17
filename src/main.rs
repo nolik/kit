@@ -3,25 +3,25 @@ extern crate clap;
 use clap::{Arg, App, SubCommand};
 
 fn main() {
-    let arg_matches = App::new("kafka-cli-helper")
+    let arg_matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(Arg::with_name("ip")
-            .short("ip")
-            .long("kafka ip, localhost by default")
-            .value_name("ip")
-            .help("Sets kafka ip with port")
-            .default_value("localhost"))
+        .arg(Arg::with_name("b")
+            .short("b")
+            .long("broker ip, localhost by default")
+            .value_name("b")
+            .help("Sets kafka broker ip with port")
+            .default_value("localhost:9092"))
         .subcommand(SubCommand::with_name("operation")
             .about("operation testing features")
-            .arg(Arg::with_name("debug")
+            .arg(Arg::with_name("consume")
                 .short("c")
                 .help("print debug information verbosely")))
         .get_matches();
 
 //    CLI logic
     println!("argument matches: {:?}", arg_matches);
-    if let Some(ip) = arg_matches.value_of("ip") {
-        println!("Some kafka ip: {}", ip);
+    if let Some(broker) = arg_matches.value_of("ip") {
+        println!("Some kafka broker ip: {}", broker);
     }
 }
