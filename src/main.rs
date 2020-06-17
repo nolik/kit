@@ -6,7 +6,7 @@ fn main() {
     let arg_matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(Arg::with_name("b")
+        .arg(Arg::with_name("broker")
             .short("b")
             .long("broker ip, localhost by default")
             .value_name("b")
@@ -16,12 +16,12 @@ fn main() {
             .about("operation testing features")
             .arg(Arg::with_name("consume")
                 .short("c")
-                .help("print debug information verbosely")))
+                .help("consume msg's from topic (eager by default)")))
         .get_matches();
 
 //    CLI logic
     println!("argument matches: {:?}", arg_matches);
-    if let Some(broker) = arg_matches.value_of("ip") {
+    if let Some(broker) = arg_matches.value_of("broker") {
         println!("Some kafka broker ip: {}", broker);
     }
 }
