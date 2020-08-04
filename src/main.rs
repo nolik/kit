@@ -1,6 +1,6 @@
 extern crate clap;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg};
 use log::{info, warn};
 use futures::StreamExt;
 use uuid::Uuid;
@@ -18,25 +18,16 @@ async fn main() {
     let matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(
-            Arg::with_name("broker")
-                .short("b")
-                .long("brokers")
-                .help("Sets kafka broker ip with port")
-                .takes_value(true)
-                .default_value("localhost:9092"),
-        )
-        .subcommand(
-            SubCommand::with_name("operation")
-                .about("operation testing features")
-                .arg(
-                    Arg::with_name("consume_topic")
-                        .short("c")
-                        .help("consume msg's from topic (eager by default, 'test default topic)")
-                        .takes_value(true)
-                        .default_value("test"),
-                ),
-        )
+        .arg(Arg::with_name("broker")
+            .short("b")
+            .long("brokers")
+            .help("Sets kafka broker ip with port")
+            .takes_value(true)
+            .default_value("localhost:9092"))
+        .arg(Arg::with_name("consume_topic")
+            .short("c")
+            .help("consume msg's from topic (eager by default, 'test default topic)")
+            .takes_value(true)
         .get_matches();
 
     //    CLI logic
