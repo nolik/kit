@@ -28,6 +28,7 @@ async fn main() {
             .short("c")
             .help("consume msg's from topic (eager by default, 'test default topic)")
             .takes_value(true)
+            .default_value("kafka-test-input"))
         .get_matches();
 
     //    CLI logic
