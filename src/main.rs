@@ -1,40 +1,53 @@
 extern crate clap;
 
-use clap::{App, Arg};
-use log::{info, warn};
-use futures::StreamExt;
-use uuid::Uuid;
+use std::time::Duration;
 
+use clap::{App, Arg};
+use futures::StreamExt;
+use log::{info, warn, LevelFilter, SetLoggerError};
 use rdkafka::client::ClientContext;
 use rdkafka::config::{ClientConfig, RDKafkaLogLevel};
 use rdkafka::consumer::stream_consumer::StreamConsumer;
 use rdkafka::consumer::{CommitMode, Consumer, ConsumerContext, Rebalance};
 use rdkafka::error::KafkaResult;
-use rdkafka::message::{Headers, Message};
+use rdkafka::message::{Headers, Message, OwnedHeaders};
+use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::topic_partition_list::TopicPartitionList;
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
     let matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(Arg::with_name("broker")
-            .short("b")
-            .long("brokers")
-            .help("Sets kafka broker ip with port")
-            .takes_value(true)
-            .default_value("localhost:9092"))
-        .arg(Arg::with_name("consume_topic")
-            .short("c")
-            .help("consume msg's from topic (eager by default, 'test default topic)")
-            .takes_value(true)
-            .default_value("kafka-test-input"))
+        .arg(
+            Arg::with_name("broker")
+                .short("b")
+                .long("brokers")
+                .help("Sets kafka broker ip with port")
+                .takes_value(true)
+                .default_value("localhost:9092"),
+        )
+        .arg(
+            Arg::with_name("consumer")
+                .short("c")
+                .help("consume msg's from topic (eager by default, 'test default topic)")
+                .takes_value(true)
+                .default_value("test"),
+        )
+        .arg(
+            Arg::with_name("producer")
+                .short("p")
+                .help("produce msg's to topic")
+                .takes_value(true)
+                .default_value("test"),
+        )
         .get_matches();
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
     let rand_group_id = Uuid::new_v4().to_string() + "_kcli";
-    let topics = matches.values_of("consume_topic").unwrap().collect::<Vec<&str>>();
+    let topics = matches.values_of("topic").unwrap().collect::<Vec<&str>>();
 
     consume_and_print(broker, rand_group_id.as_ref(), &topics).await
 }
@@ -109,5 +122,40 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
                 consumer.commit_message(&m, CommitMode::Async).unwrap();
             }
         };
+    }
+
+    async fn produce(brokers: &str, topic_name: &str) {
+        let producer: &FutureProducer = &ClientConfig::new()
+            .set("bootstrap.servers", brokers)
+            .set("message.timeout.ms", "5000")
+            .create()
+            .expect("Producer creation error");
+
+        // This loop is non blocking: all messages will be sent one after the other, without waiting
+        // for the results.
+        let futures = (0..5)
+            .map(|i| async move {
+                // The send operation on the topic returns a future, which will be
+                // completed once the result or failure from Kafka is received.
+                let delivery_status = producer
+                    .send(
+                        FutureRecord::to(topic_name)
+                            .payload(&format!("Message {}", i))
+                            .key(&format!("Key {}", i))
+                            .headers(OwnedHeaders::new().add("header_key", "header_value")),
+                        Duration::from_secs(0),
+                    )
+                    .await;
+
+                // This will be executed when the result is received.
+                info!("Delivery status for message {} received", i);
+                delivery_status
+            })
+            .collect::<Vec<_>>();
+
+        // This loop will wait until all delivery statuses have been received.
+        for future in futures {
+            info!("Future completed. Result: {:?}", future.await);
+        }
     }
 }
