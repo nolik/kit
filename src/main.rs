@@ -42,6 +42,13 @@ async fn main() {
                 .takes_value(true)
                 .default_value("test"),
         )
+        .arg(
+            Arg::with_name("topic")
+                .short("t")
+                .help("produce msg's to topic")
+                .takes_value(true)
+                .default_value("test"),
+        )
         .get_matches();
 
     //    CLI logic
