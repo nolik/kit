@@ -7,9 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "2.33.1"
-log = "0.4.8"
-rdkafka = "0.24.0"
-uuid = { version = "0.8.1", features = ["v4"] }
-futures = "0.3.5"
-tokio = { version = "0.2.21", features = ["blocking", "macros", "rt-core", "time"] }
+clap = "2.33.3"
+log = "0.4.14"
+rdkafka = "0.27.0"
+uuid = { version = "0.8.2", features = ["v4"] }
+futures = "0.3.17"
+tokio = { version = "1.13.0", features = ["macros", "time"] }
