@@ -1,8 +1,8 @@
 extern crate clap;
 
 use clap::{App, Arg};
-use log::{info, warn};
 use futures::StreamExt;
+use log::{info, warn};
 use uuid::Uuid;
 
 use rdkafka::client::ClientContext;
@@ -18,23 +18,30 @@ async fn main() {
     let matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(Arg::with_name("broker")
-            .short("b")
-            .long("brokers")
-            .help("Sets kafka broker ip with port")
-            .takes_value(true)
-            .default_value("localhost:9092"))
-        .arg(Arg::with_name("consume_topic")
-            .short("c")
-            .help("consume msg's from topic (eager by default, 'test default topic)")
-            .takes_value(true)
-            .default_value("kafka-test-input"))
+        .arg(
+            Arg::with_name("broker")
+                .short("b")
+                .long("brokers")
+                .help("Sets kafka broker ip with port")
+                .takes_value(true)
+                .default_value("localhost:9092"),
+        )
+        .arg(
+            Arg::with_name("consume_topic")
+                .short("c")
+                .help("consume msg's from topic (eager by default, 'test default topic)")
+                .takes_value(true)
+                .default_value("kafka-test-input"),
+        )
         .get_matches();
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
     let rand_group_id = Uuid::new_v4().to_string() + "_kcli";
-    let topics = matches.values_of("consume_topic").unwrap().collect::<Vec<&str>>();
+    let topics = matches
+        .values_of("consume_topic")
+        .unwrap()
+        .collect::<Vec<&str>>();
 
     consume_and_print(broker, rand_group_id.as_ref(), &topics).await
 }
@@ -84,7 +91,7 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
 
     // consumer.start() returns a stream. The stream can be used ot chain together expensive steps,
     // such as complex computations on a thread pool or asynchronous IO.
-    let mut message_stream = consumer.start();
+    let mut message_stream = StreamConsumer::stream;
 
     while let Some(message) = message_stream.next().await {
         match message {
