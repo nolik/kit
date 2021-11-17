@@ -2,7 +2,6 @@ extern crate clap;
 
 use clap::{App, Arg};
 use log::{info, warn};
-use futures::StreamExt;
 use uuid::Uuid;
 
 use rdkafka::client::ClientContext;
@@ -18,23 +17,30 @@ async fn main() {
     let matches = App::new("kcli")
         .version("1.0")
         .about("Kafka cli helper")
-        .arg(Arg::with_name("broker")
-            .short("b")
-            .long("brokers")
-            .help("Sets kafka broker ip with port")
-            .takes_value(true)
-            .default_value("localhost:9092"))
-        .arg(Arg::with_name("consume_topic")
-            .short("c")
-            .help("consume msg's from topic (eager by default, 'test default topic)")
-            .takes_value(true)
-            .default_value("kafka-test-input"))
+        .arg(
+            Arg::with_name("broker")
+                .short("b")
+                .long("brokers")
+                .help("Sets kafka broker ip with port")
+                .takes_value(true)
+                .default_value("localhost:9092"),
+        )
+        .arg(
+            Arg::with_name("consume_topic")
+                .short("c")
+                .help("consume msg's from topic (eager by default, 'test default topic)")
+                .takes_value(true)
+                .default_value("kafka-test-input"),
+        )
         .get_matches();
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
     let rand_group_id = Uuid::new_v4().to_string() + "_kcli";
-    let topics = matches.values_of("consume_topic").unwrap().collect::<Vec<&str>>();
+    let topics = matches
+        .values_of("consume_topic")
+        .unwrap()
+        .collect::<Vec<&str>>();
 
     consume_and_print(broker, rand_group_id.as_ref(), &topics).await
 }
@@ -72,8 +78,6 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
         .set("enable.partition.eof", "false")
         .set("session.timeout.ms", "6000")
         .set("enable.auto.commit", "true")
-        //.set("statistics.interval.ms", "30000")
-        //.set("auto.offset.reset", "smallest")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create_with_context(context)
         .expect("Consumer creation failed");
@@ -82,12 +86,8 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
         .subscribe(&topics.to_vec())
         .expect("Can't subscribe to specified topics");
 
-    // consumer.start() returns a stream. The stream can be used ot chain together expensive steps,
-    // such as complex computations on a thread pool or asynchronous IO.
-    let mut message_stream = consumer.start();
-
-    while let Some(message) = message_stream.next().await {
-        match message {
+    loop {
+        match consumer.recv().await {
             Err(e) => warn!("Kafka error: {}", e),
             Ok(m) => {
                 let payload = match m.payload_view::<str>() {
