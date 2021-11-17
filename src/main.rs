@@ -1,7 +1,6 @@
 extern crate clap;
 
 use clap::{App, Arg};
-use futures::StreamExt;
 use log::{info, warn};
 use uuid::Uuid;
 
@@ -79,8 +78,6 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
         .set("enable.partition.eof", "false")
         .set("session.timeout.ms", "6000")
         .set("enable.auto.commit", "true")
-        //.set("statistics.interval.ms", "30000")
-        //.set("auto.offset.reset", "smallest")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create_with_context(context)
         .expect("Consumer creation failed");
@@ -89,12 +86,8 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
         .subscribe(&topics.to_vec())
         .expect("Can't subscribe to specified topics");
 
-    // consumer.start() returns a stream. The stream can be used ot chain together expensive steps,
-    // such as complex computations on a thread pool or asynchronous IO.
-    let mut message_stream = StreamConsumer::stream;
-
-    while let Some(message) = message_stream.next().await {
-        match message {
+    loop {
+        match consumer.recv().await {
             Err(e) => warn!("Kafka error: {}", e),
             Ok(m) => {
                 let payload = match m.payload_view::<str>() {
