@@ -1,4 +1,4 @@
-name: Rust
+name: Clippy and test
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build
+      - name: Clippy
         run: cargo clippy -- -D warnings
-      - name: Run tests
+      - name: Test
         run: cargo test --verbose
