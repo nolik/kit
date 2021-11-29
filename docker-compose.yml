@@ -1,0 +1,44 @@
+version: 3.8
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 192M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+    healthcheck:
+      test: "nc -z 127.0.0.1 2181"
+      interval: 5s
+      timeout: 1s
+      retries: 10
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.7.1
+    ports:
+      - "9092"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 896M
+        reservations:
+          cpus: '0.3'
+          memory: 728M
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: "/opt/kafka/bin/kafka-topics.sh --zookeeper zookeeper --list | grep test"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "test:3:1"
