@@ -14,20 +14,20 @@ use rdkafka::topic_partition_list::TopicPartitionList;
 
 #[tokio::main]
 async fn main() {
-    let matches = App::new("kcli")
+    let matches = App::new("kit")
         .version("1.0")
         .about("Kafka cli helper")
         .arg(
-            Arg::with_name("broker")
-                .short("b")
+            Arg::new("broker")
+                .short('b')
                 .long("brokers")
                 .help("Sets kafka broker ip with port")
                 .takes_value(true)
                 .default_value("localhost:9092"),
         )
         .arg(
-            Arg::with_name("consume_topic")
-                .short("c")
+            Arg::new("consume_topic")
+                .short('c')
                 .help("consume msg's from topic (eager by default, 'test default topic)")
                 .takes_value(true)
                 .default_value("kafka-test-input"),
@@ -36,7 +36,7 @@ async fn main() {
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
-    let rand_group_id = Uuid::new_v4().to_string() + "_kcli";
+    let rand_group_id = Uuid::new_v4().to_string() + "_kit";
     let topics = matches
         .values_of("consume_topic")
         .unwrap()
