@@ -26,8 +26,8 @@ async fn main() {
                 .default_value("localhost:9092"),
         )
         .arg(
-            Arg::with_name("consume")
-                .short("c")
+            Arg::new("consume")
+                .short('c')
                 .help("consume msg's from topic (eager by default, default topic is 'input')")
                 .takes_value(true)
                 .default_value("kafka-test-input"),
