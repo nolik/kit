@@ -18,8 +18,8 @@ async fn main() {
         .version("0.1")
         .about("Kafka intuitive toolkit")
         .arg(
-            Arg::with_name("broker")
-                .short("b")
+            Arg::new("broker")
+                .short('b')
                 .long("brokers")
                 .help("Sets kafka broker ip with port")
                 .takes_value(true)
@@ -36,7 +36,7 @@ async fn main() {
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
-    let rand_group_id = Uuid::new_v4().to_string() + "_kcli";
+    let rand_group_id = Uuid::new_v4().to_string() + "_kit";
     let topics = matches
         .values_of("consume")
         .unwrap()
