@@ -1,5 +1,5 @@
 [package]
-name = "kcli"
+name = "kit"
 version = "0.1.0"
 authors = ["<nolik03@godeltech.com>"]
 edition = "2021"
