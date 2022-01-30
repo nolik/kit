@@ -28,9 +28,16 @@ async fn main() {
         .arg(
             Arg::new("consume")
                 .short('c')
-                .help("consume msg's from topic (eager by default, default topic is 'input')")
+                .help("consume msg's from topic (eager by default, default topic is 'test')")
                 .takes_value(true)
-                .default_value("kafka-test-input"),
+                .default_value("test"),
+        )
+        .arg(
+            Arg::new("produce")
+                .short('p')
+                .help("produce msg's to topic (eager by default, default topic is 'test')")
+                .takes_value(true)
+                .default_value("test"),
         )
         .get_matches();
 
