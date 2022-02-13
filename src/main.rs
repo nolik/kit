@@ -55,7 +55,7 @@ async fn main() {
     if producer_mode {
         warn!("producer mode not yet implemented");
     } else {
-        consume_and_print(broker, rand_group_id.as_ref(), &topic).await
+        consume_and_print(broker, rand_group_id.as_ref(), topic).await
     }
 }
 
