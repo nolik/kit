@@ -14,6 +14,8 @@ use rdkafka::topic_partition_list::TopicPartitionList;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
     let matches = App::new("kit")
         .version("0.1")
         .about("Kafka intuitive toolkit")
@@ -66,15 +68,15 @@ impl ClientContext for CustomContext {}
 
 impl ConsumerContext for CustomContext {
     fn pre_rebalance(&self, rebalance: &Rebalance) {
-        info!("Pre rebalance {:?}", rebalance);
+        debug!("Pre rebalance {:?}", rebalance);
     }
 
     fn post_rebalance(&self, rebalance: &Rebalance) {
-        info!("Post rebalance {:?}", rebalance);
+        debug!("Post rebalance {:?}", rebalance);
     }
 
     fn commit_callback(&self, result: KafkaResult<()>, _offsets: &TopicPartitionList) {
-        info!("Committing offsets: {:?}", result);
+        debug!("Committing offsets: {:?}", result);
     }
 }
 
@@ -111,14 +113,9 @@ async fn consume_and_print(brokers: &str, group_id: &str, topic: &str) {
                         ""
                     }
                 };
-                info!("key: '{:?}', payload: '{}', topic: {}, partition: {}, offset: {}, timestamp: {:?}",
+                debug!("key: '{:?}', payload: '{}', topic: {}, partition: {}, offset: {}, timestamp: {:?}",
                       m.key(), payload, m.topic(), m.partition(), m.offset(), m.timestamp());
-                if let Some(headers) = m.headers() {
-                    for i in 0..headers.count() {
-                        let header = headers.get(i).unwrap();
-                        info!("Header {:#?}: {:?}", header.0, header.1);
-                    }
-                }
+                info!(payload);
                 consumer.commit_message(&m, CommitMode::Async).unwrap();
             }
         };
