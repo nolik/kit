@@ -1,7 +1,7 @@
 extern crate clap;
 
 use clap::{App, Arg};
-use log::{info, warn};
+use log::{debug, info, warn};
 use uuid::Uuid;
 
 use rdkafka::client::ClientContext;
@@ -9,11 +9,13 @@ use rdkafka::config::{ClientConfig, RDKafkaLogLevel};
 use rdkafka::consumer::stream_consumer::StreamConsumer;
 use rdkafka::consumer::{CommitMode, Consumer, ConsumerContext, Rebalance};
 use rdkafka::error::KafkaResult;
-use rdkafka::message::{Headers, Message};
+use rdkafka::message::Message;
 use rdkafka::topic_partition_list::TopicPartitionList;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
     let matches = App::new("kit")
         .version("0.1")
         .about("Kafka intuitive toolkit")
@@ -28,21 +30,33 @@ async fn main() {
         .arg(
             Arg::new("consume")
                 .short('c')
-                .help("consume msg's from topic (eager by default, default topic is 'input')")
+                .help("consume msg's from topic (eager by default)"),
+        )
+        .arg(
+            Arg::new("produce")
+                .short('p')
+                .help("produce msg's to topic (eager by default)"),
+        )
+        .arg(
+            Arg::new("topic")
+                .short('t')
+                .help("default topic name")
                 .takes_value(true)
-                .default_value("kafka-test-input"),
+                .default_value("test"),
         )
         .get_matches();
 
     //    CLI logic
     let broker = matches.value_of("broker").unwrap();
     let rand_group_id = Uuid::new_v4().to_string() + "_kit";
-    let topics = matches
-        .values_of("consume")
-        .unwrap()
-        .collect::<Vec<&str>>();
+    let topic = matches.value_of("topic").unwrap();
+    let producer_mode = matches.is_present("produce");
 
-    consume_and_print(broker, rand_group_id.as_ref(), &topics).await
+    if producer_mode {
+        warn!("producer mode not yet implemented");
+    } else {
+        consume_and_print(broker, rand_group_id.as_ref(), topic).await
+    }
 }
 
 // A context can be used to change the behavior of producers and consumers by adding callbacks
@@ -54,22 +68,22 @@ impl ClientContext for CustomContext {}
 
 impl ConsumerContext for CustomContext {
     fn pre_rebalance(&self, rebalance: &Rebalance) {
-        info!("Pre rebalance {:?}", rebalance);
+        debug!("Pre rebalance {:?}", rebalance);
     }
 
     fn post_rebalance(&self, rebalance: &Rebalance) {
-        info!("Post rebalance {:?}", rebalance);
+        debug!("Post rebalance {:?}", rebalance);
     }
 
     fn commit_callback(&self, result: KafkaResult<()>, _offsets: &TopicPartitionList) {
-        info!("Committing offsets: {:?}", result);
+        debug!("Committing offsets: {:?}", result);
     }
 }
 
 // A type alias with your custom consumer can be created for convenience.
 type LoggingConsumer = StreamConsumer<CustomContext>;
 
-async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
+async fn consume_and_print(brokers: &str, group_id: &str, topic: &str) {
     let context = CustomContext;
 
     let consumer: LoggingConsumer = ClientConfig::new()
@@ -83,9 +97,10 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
         .expect("Consumer creation failed");
 
     consumer
-        .subscribe(&topics.to_vec())
+        .subscribe(&[topic])
         .expect("Can't subscribe to specified topics");
 
+    debug!("Starting to consume from topics {:?}", &topic);
     loop {
         match consumer.recv().await {
             Err(e) => warn!("Kafka error: {}", e),
@@ -98,14 +113,9 @@ async fn consume_and_print(brokers: &str, group_id: &str, topics: &[&str]) {
                         ""
                     }
                 };
-                info!("key: '{:?}', payload: '{}', topic: {}, partition: {}, offset: {}, timestamp: {:?}",
+                debug!("key: '{:?}', payload: '{}', topic: {}, partition: {}, offset: {}, timestamp: {:?}",
                       m.key(), payload, m.topic(), m.partition(), m.offset(), m.timestamp());
-                if let Some(headers) = m.headers() {
-                    for i in 0..headers.count() {
-                        let header = headers.get(i).unwrap();
-                        info!("  Header {:#?}: {:?}", header.0, header.1);
-                    }
-                }
+                info!("{}", payload);
                 consumer.commit_message(&m, CommitMode::Async).unwrap();
             }
         };

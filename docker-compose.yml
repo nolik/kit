@@ -8,10 +8,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.4'
+          cpus: '0.5'
           memory: 192M
         reservations:
-          cpus: '0.2'
+          cpus: '0.25'
           memory: 128M
     healthcheck:
       test: "nc -z 127.0.0.1 2181"
@@ -22,23 +22,26 @@ services:
   kafka:
     image: wurstmeister/kafka:2.13-2.8.1
     ports:
-      - "9092"
+      - "9092:9092"
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 896M
-        reservations:
-          cpus: '0.3'
+          cpus: '0.7'
           memory: 728M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.0.145
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "test:3:1"
     healthcheck:
       test: "/opt/kafka/bin/kafka-topics.sh --zookeeper zookeeper --list | grep test"
       interval: 10s
       timeout: 10s
       retries: 10
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "test:3:1"
+
+#  /opt/kafka/bin/kafka-console-producer.sh   --topic test --bootstrap-server localhost:9092   --property parse.key=true   --property key.separator=":"
+#   /opt/kafka/bin/kafka-console-consumer.sh --topic test --bootstrap-server localhost:9092 --from-beginning
