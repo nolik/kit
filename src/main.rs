@@ -115,7 +115,7 @@ async fn consume_and_print(brokers: &str, group_id: &str, topic: &str) {
                 };
                 debug!("key: '{:?}', payload: '{}', topic: {}, partition: {}, offset: {}, timestamp: {:?}",
                       m.key(), payload, m.topic(), m.partition(), m.offset(), m.timestamp());
-                info!(payload);
+                info!("{}", payload);
                 consumer.commit_message(&m, CommitMode::Async).unwrap();
             }
         };
