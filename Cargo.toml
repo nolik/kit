@@ -12,5 +12,5 @@ log = "0.4.14"
 rdkafka = "0.28.0"
 uuid = { version = "0.8.2", features = ["v4"] }
 futures = "0.3.21"
-tokio = { version = "1.16.1", features = ["macros", "rt-multi-thread", "time"] }
+tokio = { version = "1.24.1", features = ["macros", "rt-multi-thread", "time"] }
 
